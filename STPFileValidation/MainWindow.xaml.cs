@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
+using Microsoft.Win32;
 
 namespace STPFileValidation
 {
@@ -23,6 +25,17 @@ namespace STPFileValidation
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var viewModel = (MainWindowViewModel)DataContext;
+                viewModel.STPFile = openFileDialog.FileName;
+                viewModel.Validate();
+            }
         }
     }
 }

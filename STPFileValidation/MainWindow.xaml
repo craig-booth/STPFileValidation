@@ -5,8 +5,67 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:STPFileValidation"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" Height="649.524" Width="1179.629">
+
+    <Window.Resources>
+        <local:MainWindowViewModel x:Key="ViewModel" />
+    </Window.Resources>
+
+    <Window.DataContext>
+        <Binding Source="{StaticResource ViewModel}"/>
+    </Window.DataContext>
+
+    <DockPanel LastChildFill="True">
+
+        <DockPanel DockPanel.Dock="Top" LastChildFill="True" Margin="10,20,10,0">
+            <TextBlock DockPanel.Dock="Left" TextAlignment="Left">File to Validate</TextBlock>
+            <Button DockPanel.Dock="Right" Command="{Binding ValidateCommand}" Margin="30,0,0,0" Width="60" >Validate</Button>
+            <Button DockPanel.Dock="Right" Margin="0" Width="60" Click="Button_Click">Browse...</Button>
+            <TextBox Name="txtSTPFile" DockPanel.Dock="Top" Text="{Binding STPFile, Mode=TwoWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True}"  Margin="10, 0, 5, 0" />
+        </DockPanel>
+
+        <ListBox ItemsSource="{Binding ValidationErrors}" Margin="10" >
+
+            <ListBox.Resources>
+                <BitmapImage x:Key="ErrorIcon" UriSource="\images\002-cross.png" />
+                <BitmapImage x:Key="WarningIcon" UriSource="\images\004-alert.png" />
+                <BitmapImage x:Key="InformationIcon" UriSource="\images\001-question.png" />
+                <BitmapImage x:Key="SuccessIcon" UriSource="\images\003-tick.png" />
+
+                <Style x:Key="ErrorSeverityStyle" TargetType="Image">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static local:Severity.Error}">
+                            <Setter Property="Source" Value="{StaticResource ErrorIcon}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static local:Severity.Warning}">
+                            <Setter Property="Source" Value="{StaticResource WarningIcon}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static local:Severity.Information}">
+                            <Setter Property="Source" Value="{StaticResource InformationIcon}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static local:Severity.Success}">
+                            <Setter Property="Source" Value="{StaticResource SuccessIcon}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Resources>
+
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Margin="0, 4">
+                        <Image Style="{StaticResource ErrorSeverityStyle}" Width="30" Margin="10" VerticalAlignment="Top"/>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="{Binding ErrorCode}" FontWeight="Bold" />
+                            <TextBlock >In Document <TextBlock Text="{Binding DocumentId}" /> : <TextBlock Text="{Binding Location}" /></TextBlock>
+                            <TextBlock Text="{Binding Description}" />
+                            <TextBlock Text="{Binding LongDescription}" />
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+    </DockPanel>
+
 </Window>

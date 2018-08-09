@@ -40,8 +40,8 @@ namespace STPFileValidation
         {
             ValidationErrors.Clear();
 
-            var errors = _STPFileValidator.Validate(_STPFile);
-            foreach (var error in errors)
+            _STPFileValidator.Validate(_STPFile);
+            foreach (var error in _STPFileValidator.Errors)
                 ValidationErrors.Add(error);
         }
 

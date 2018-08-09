@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Linq;
 using System.IO;
 
@@ -17,61 +18,82 @@ namespace STPFileValidation
 {
     class STPFileValidator 
     {
-        public IEnumerable<ValidationError> Validate(string fileName)
+        private STPFile _STPFile;
+        private bool _XSDError;
+
+        private List<ValidationError> _Errors = new List<ValidationError>();
+        public IEnumerable<ValidationError> Errors
         {
-            var errors = new List<ValidationError>();
+            get { return _Errors; }
+        }
 
+        public bool Validate(string fileName)
+        {
+            _Errors.Clear();
 
-            var payEvntConsumer = new PAYEVNT2018XmlConsumer();
-            var payEvntEmpConsumer = new PAYEVNTEMP2018XmlConsumer();
-
-
-            var stpFile = new STPFile(fileName);
-
+            _STPFile = new STPFile(fileName);
+  
             Stream stpStream;
-            while ((stpStream = stpFile.GetChildDocument()) != null)
+            while ((stpStream = _STPFile.GetChildDocument()) != null)
             {
-                if (stpFile.DocumentType == "PAYEVNT")
-                {
-                    var payEvnt = payEvntConsumer.Consume(stpStream, true);
-                    errors.AddRange(ValidatePAYEVNT(payEvnt, stpFile.DocumentId));
-                }
-                else if (stpFile.DocumentType == "PAYEVNTEMP")
-                {
-                    var payEvntEmp = payEvntEmpConsumer.Consume(stpStream, true);
-                    errors.AddRange(ValidatePAYEVNTEMP(payEvntEmp, stpFile.DocumentId));
-                }
+                var memoryStream = new MemoryStream();
+                stpStream.CopyTo(memoryStream);
+
+                if (_STPFile.DocumentType == "PAYEVNT")
+                    ValidatePAYEVNT(memoryStream);
+                else if (_STPFile.DocumentType == "PAYEVNTEMP")
+                    ValidatePAYEVNTEMP(memoryStream);
 
                 stpStream.Close();
             }
 
-            stpFile.Close();
+            _STPFile.Close();
 
 
-            if (errors.Count == 0)
+            if (_Errors.Count == 0)
             {
-                errors.Add(new ValidationError()
+                _Errors.Add(new ValidationError()
                 {
                     ErrorCode = "CMN.ATO.GEN.OK",
                     Severity = Severity.Success
                 });
-            }
 
-            return errors;
+                return true;
+            }
+            else
+                return false;
         }
 
-        public IEnumerable<ValidationError> ValidatePAYEVNT(PAYEVNT2018 payEvent, string documentId)
+        public bool ValidatePAYEVNT(Stream stream)
         {
+            var successfull = true;
+
+            stream.Position = 0;
+            successfull &= ValidatePAYEVNTStructure(stream);
+
+            stream.Position = 0;
+            successfull &= ValidatePAYEVNTRules(stream);
+
+            return successfull;
+        }
+
+        private bool ValidatePAYEVNTRules(Stream stream)
+        {
+            var successfull = true;
+
+            var payEvntConsumer = new PAYEVNT2018XmlConsumer();
+            var payEvnt = payEvntConsumer.Consume(stream, true);
+
             var validator = new PAYEVNT2018ValidatorSubmit();
 
-            var result = validator.ValidateReport(payEvent, DateTime.Now);
+            var result = validator.ValidateReport(payEvnt, DateTime.Now);
 
             foreach (var message in result)
             {
                 var error = new ValidationError()
                 {
-                    DocumentId = documentId,
-                    DocumentType = "PAYEVNT_2018",
+                    DocumentId = _STPFile.DocumentId,
+                    DocumentType = _STPFile.DocumentType,
                     ErrorCode = message.Code,
                     Description = message.Description,
                     LongDescription = message.LongDescription,
@@ -84,21 +106,42 @@ namespace STPFileValidation
                 else
                     error.Severity = Severity.Error;
 
-                yield return error;
-            } 
+                _Errors.Add(error);
+                successfull = false;
+            }
+
+            return successfull;
         }
 
-        public IEnumerable<ValidationError> ValidatePAYEVNTEMP(PAYEVNTEMP2018 payEventEmp, string documentId)
+       private bool ValidatePAYEVNTEMP(Stream stream)
         {
+            var successfull = true;
+
+            stream.Position = 0;
+            successfull &= ValidatePAYEVNTEMPStructure(stream);
+
+            stream.Position = 0;
+            successfull &= ValidatePAYEVNTEMPRules(stream);
+
+            return successfull;
+        }
+
+        private bool ValidatePAYEVNTEMPRules(Stream stream)
+        {
+            var successfull = true;
+
+            var payEvntEmpConsumer = new PAYEVNTEMP2018XmlConsumer();
+            var payEvntEmp = payEvntEmpConsumer.Consume(stream, true);
+
             var validator = new PAYEVNTEMP2018ValidatorSubmit();
-            var result = validator.ValidateReport(payEventEmp);
+            var result = validator.ValidateReport(payEvntEmp);
 
             foreach (var message in result)
             {
                 var error = new ValidationError()
                 {
-                    DocumentId = documentId,
-                    DocumentType = "PAYEVNTEMP_2018",
+                    DocumentId = _STPFile.DocumentId,
+                    DocumentType = _STPFile.DocumentType,
                     ErrorCode = message.Code,
                     Description = message.Description,
                     LongDescription = message.LongDescription,
@@ -111,8 +154,71 @@ namespace STPFileValidation
                 else
                     error.Severity = Severity.Error;
 
-                yield return error;
+                _Errors.Add(error);
+                successfull = false;
             }
+
+            return successfull;
+        }
+
+        private bool ValidatePAYEVNTStructure(Stream stream)
+        {
+            return ValidateAgainstXSD(stream, "http://www.sbr.gov.au/ato/payevnt", "ato.payevnt.0003.2018.01.00.xsd");
+        }
+
+        private bool ValidatePAYEVNTEMPStructure(Stream stream)
+        {
+            return ValidateAgainstXSD(stream, "http://www.sbr.gov.au/ato/payevntemp", "ato.payevntemp.0003.2018.01.00.xsd");
+        }
+
+        private bool ValidateAgainstXSD(Stream stream, string nameSpace, string xsdFile)
+        {
+            _XSDError = false;
+            try
+            {
+                var xmlReader = XmlReader.Create(stream);
+                var xmlDocument = XDocument.Load(xmlReader);
+
+                var xmlSchema = new XmlSchemaSet();
+                xmlSchema.Add(nameSpace, xsdFile);
+                xmlDocument.Validate(xmlSchema, ValidationEventHandler);
+            }
+            catch (Exception e)
+            {
+                var error = new ValidationError()
+                {
+                    DocumentId = _STPFile.DocumentId,
+                    DocumentType = _STPFile.DocumentType,
+                    ErrorCode = "Invalid XML Document",
+                    Description = e.Message,
+                    LongDescription = "",
+                    Location = "",
+                    Severity = Severity.Error
+                };
+
+                _Errors.Add(error);
+                _XSDError = true;
+            }
+
+
+            return _XSDError;
+        }
+
+        private void ValidationEventHandler(object sender, ValidationEventArgs e)
+        {
+            var error = new ValidationError()
+            {
+                DocumentId = _STPFile.DocumentId,
+                DocumentType = _STPFile.DocumentType,
+                ErrorCode = "XSD Validation Error",
+                Description = e.Message,
+                LongDescription = "",
+                Location = "",
+                Severity = Severity.Error
+            };
+
+            _Errors.Add(error);
+            _XSDError = true;
         }
     }
 

@@ -23,7 +23,7 @@ namespace STPFileValidation
             DocumentStream = null;
 
             _STPFile = File.Open(fileName, FileMode.Open);
-            _Buffer = new STPFileBuffer(_STPFile, 1024);
+            _Buffer = new STPFileBuffer(_STPFile, 32768);
         }
 
         public void Close()
@@ -144,7 +144,7 @@ namespace STPFileValidation
             var bytesToCopy = 0;
 
             var bytesAvailable = _BytesInBuffer - _Offset;
-            if (bytesAvailable < value.Length)
+            if (bytesAvailable < value.Length * 2)
                 FillBuffer();
 
             bytesAvailable = _BytesInBuffer - _Offset;
@@ -167,10 +167,16 @@ namespace STPFileValidation
                     return bytesToCopy;
                 }
 
-                bytesToCopy = Math.Min(count, bytesAvailable);
+                if (bytesAvailable > value.Length)
+                    bytesToCopy = Math.Min(count, bytesAvailable - value.Length);
+                else
+                    bytesToCopy = Math.Min(count, bytesAvailable);
                 System.Buffer.BlockCopy(_Bytes, _Offset, buffer, offset, bytesToCopy);
                 _Offset += bytesToCopy;
                 bytesRead += bytesToCopy;
+
+
+                var xx = System.Text.Encoding.UTF8.GetString(_Bytes, 0, bytesRead);
 
                 var bytesRemaining = count - bytesRead;
                 if (bytesRemaining > 0)

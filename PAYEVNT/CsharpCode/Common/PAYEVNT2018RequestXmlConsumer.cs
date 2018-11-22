@@ -4,7 +4,7 @@
 // 
 //     Manual changes to this file will be overwritten if the code is regenerated.
 //
-//     Generated on 2018-02-16T11:10:24, by ESR Version 1.71.0.0 using ESR Database 
+//     Generated on 2018-10-02T14:09:18, by ESR Version 1.82.0.0 using ESR Database SWS_EA_ESR_Cloud_Prod
 //  </auto-generated>
 // ------------------------------------------------------------------------------
 
@@ -40,8 +40,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
         private bool _isValidationError = false;
         private string _lastPath = string.Empty;
         private ErrorMessageType _validationError = new ErrorMessageType(ErrorDescriptor.NoError);
-
-
+        
         #region Error Messages
 
         public List<ProcessMessageDocument> ErrorMessages { get; set; }
@@ -77,7 +76,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             };
             this.ErrorMessages.Add(processMessage);
         }
-
+        
         #endregion  Error Messages
 
         #region Embedded Schema
@@ -147,7 +146,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             return validatingReaderSettings;
         }
 
-        private static Regex DataTypeFailureExpression = new Regex("'(?<Uniqueid>.*?)' element is invalid.*value '(?<Value>.*?)' is invalid.*datatype '(?<DataType>.*?)'", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static Regex DataTypeFailureExpression = new Regex("'(?<Uniqueid>.*?)' element is invalid.*value '(?<Value>.*?)' is invalid.*datatype '(?<DataType>.*?)'", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
 
         private void ValidationCallBack(object sender, ValidationEventArgs args)
         {
@@ -199,6 +198,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                 processMessage = BuildProcessMessageDocument(ContactYourProviderMsg, msg, ErrorCode1, lastProcessedElement);
                 _isValidationError = true;
             }
+
             else
             {
                 processMessage = BuildProcessMessageDocument(ContactYourProviderMsg, msg, ErrorCode1);
@@ -207,6 +207,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             this.ErrorMessages.Add(processMessage);
         }
+
         private ProcessMessageDocument BuildProcessMessageDocument(string shortDescription, string longDescription, string code, string lastElementProcessed)
         {
             return new ProcessMessageDocument()
@@ -367,9 +368,10 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                 {
                     //this is an invalid child element now determine if its a mandatory or optional element.
                     var indexOfElementBeingProcessed = elementList.IndexOf(elementBeingProcessed);
-                    var indexOfinvalidChildElementName = elementList.IndexOf(invalidChildElementName);
+                    var maxSearchIndex = indexOfElementBeingProcessed > 0 ? indexOfElementBeingProcessed : elementList.Count - 1;
+                    var indexOfinvalidChildElementName = elementList.LastIndexOf(invalidChildElementName, maxSearchIndex);
                     var indexOflastElementInListOfPossibleElements =
-                        elementList.IndexOf(lastElementInListOfPossibleElements);
+                                            elementList.LastIndexOf(lastElementInListOfPossibleElements, indexOfinvalidChildElementName);
                     if (indexOfinvalidChildElementName > indexOflastElementInListOfPossibleElements)
                     {
                         retval.Hint =
@@ -712,7 +714,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
         #endregion  ReadToNextElement
 
         private Stack<string> _currentXPath = new Stack<string>(10);
-
 
         public PAYEVNT2018 Consume(Stream streamToLoad, bool validateDataTypes = false)
         {
@@ -1617,4 +1618,3 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
     }
 }
-

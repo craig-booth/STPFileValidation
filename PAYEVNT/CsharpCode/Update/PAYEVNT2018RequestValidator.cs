@@ -4,7 +4,7 @@
 // 
 //     Manual changes to this file will be overwritten if the code is regenerated.
 //
-//     Generated on 2017-11-20T14:40:16, by ESR Version 1.69.0.0 using ESR Database 
+//     Generated on 2018-10-17T10:29:30, by ESR Version 1.83.0.0 using ESR Database SWS_EA_ESR_Cloud_Prod
 //  </auto-generated>
 // ------------------------------------------------------------------------------
 
@@ -119,10 +119,25 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
         private static string GetValueOrEmpty(bool? val)
         {
-            return (val.HasValue) ? val.ToString() : string.Empty;
+            return (val.HasValue) ? val.ToString().ToLower() : string.Empty;
         }
 
         private static string GetValueOrEmpty(DateTime? val)
+        {
+            return (val.HasValue) ? val.ToString() : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(string val)
+        {
+            return !string.IsNullOrWhiteSpace(val) ? val : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(decimal? val)
+        {
+            return (val.HasValue) ? val.ToString() : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(int? val)
         {
             return (val.HasValue) ? val.ToString() : string.Empty;
         }
@@ -273,6 +288,12 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             return response;
         }
+
+        public DateTime Date(DateTime? datetime)
+        {
+            return datetime.GetValueOrDefault().Date;
+        }
+
         //The logic in After function expects "---" for day and "--" for month. 
         //Since hyphen was missing the date always returned null
         public DateTime? ConvertToDate(int day, int month, int year)
@@ -605,7 +626,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
         private static bool FailsUSIAlgorithm(string usi, string abn)
         {
-            bool response;
+            bool response = true;
             if (usi == null || abn == null)
             {
                 response = false;
@@ -614,24 +635,22 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             {
                 usi = usi.Trim();
                 abn = abn.Trim();
-                if (usi.Length < 13 || abn.Length < 11)
-                {
-                    response = false;
-                }
-                else
+                if (usi.Length == 14)
                 {
                     int numeric;
-                    if (usi.Substring(0, 11) == abn && int.TryParse(usi.Substring(11, 2), out numeric))
+                    if (usi.Substring(0, 11) == abn && int.TryParse(usi.Substring(11, 3), out numeric))
                         response = false;
-                    else if (Regex.IsMatch(usi, @"^[a-zA-Z]{3}\d{4}[a-zA-Z]{2}"))
+
+                }
+                else if (usi.Length == 9)
+                {
+
+                    if (Regex.IsMatch(usi, @"^([a-zA-Z]{3}\d{4}[a-zA-Z]{2})$"))
                         response = false;
-                    else
-                        response = true;
                 }
             }
             return response;
         }
-
 
         private static bool FailsTANAlgorithm(string tan)
         {
@@ -906,7 +925,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT2 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNT2 = PAYEVNT:Rp:Identifiers.AustralianBusinessNumber.Identifier
             */
             assertion = FailsABNAlgorithm(report.PAYEVNT2);
             if (assertion)
@@ -919,9 +938,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AustralianBusinessNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000015" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT2", Value = report.PAYEVNT2 });
+                { Name = "PAYEVNT2", Value = GetValueOrEmpty(report.PAYEVNT2) });
 
                 response.Add(processMessage);
             }
@@ -940,7 +958,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT15 = pyde.02.00:ElectronicContact.ElectronicMail.Address.Text
+            ^PAYEVNT15 = PAYEVNT:Rp:ElectronicContact:ElectronicContact.ElectronicMail.Address.Text
             */
             assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT15) != true && !(IsMatch(report.PAYEVNT15, @"^\S.*@.+\.\S+$")));
             if (assertion)
@@ -954,9 +972,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:ElectronicContact/tns:ElectronicMailAddressT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000110" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT15", Value = report.PAYEVNT15 });
+                { Name = "PAYEVNT15", Value = GetValueOrEmpty(report.PAYEVNT15) });
 
                 response.Add(processMessage);
             }
@@ -975,7 +992,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT38 = pyin.02.29:Declaration.Signature.Date
+            ^PAYEVNT38 = PAYEVNT:Rp:Declaration:Declaration.Signature.Date
             */
             assertion = (report.PAYEVNT38.GetValueOrDefault() > DateTime.Now.Date);
             if (assertion)
@@ -988,7 +1005,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Declaration/tns:SignatureD",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000170" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT38", Value = GetValueOrEmpty(report.PAYEVNT38) });
 
@@ -1009,9 +1025,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT11 = pyde.02.00:AddressDetails.StateOrTerritory.Code
+            ^PAYEVNT11 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.StateOrTerritory.Code
     
-            PAYEVNT:^PAYEVNT14 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNT14 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Country.Code
             */
             assertion = (report.PAYEVNT14 != null && report.PAYEVNT14 != @"au" && report.PAYEVNT11 != null);
             if (assertion)
@@ -1025,12 +1041,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:StateOrTerritoryC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000171" } },
                 };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT14", Value = GetValueOrEmpty(report.PAYEVNT14) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT14", Value = report.PAYEVNT14 });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT11", Value = report.PAYEVNT11 });
+                { Name = "PAYEVNT11", Value = GetValueOrEmpty(report.PAYEVNT11) });
 
                 response.Add(processMessage);
             }
@@ -1049,7 +1064,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT64 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNT64 = PAYEVNT:Int:Identifiers.AustralianBusinessNumber.Identifier
             */
             assertion = FailsABNAlgorithm(report.PAYEVNT64);
             if (assertion)
@@ -1062,7 +1077,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Int/tns:AustralianBusinessNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000172" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT64", Value = report.PAYEVNT64 });
 
@@ -1083,7 +1097,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT66 = pyde.02.00:ElectronicContact.ElectronicMail.Address.Text
+            ^PAYEVNT66 = PAYEVNT:Int:ElectronicContact:ElectronicContact.ElectronicMail.Address.Text
             */
             assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT66) != true && !(IsMatch(report.PAYEVNT66, @"^\S.*@.+\.\S+$")));
             if (assertion)
@@ -1097,9 +1111,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Int/tns:ElectronicContact/tns:ElectronicMailAddressT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000173" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT66", Value = report.PAYEVNT66 });
+                { Name = "PAYEVNT66", Value = GetValueOrEmpty(report.PAYEVNT66) });
 
                 response.Add(processMessage);
             }
@@ -1108,21 +1121,21 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             #region VR.ATO.PAYEVNT.000177
 
             /*  VR.ATO.PAYEVNT.000177
-            Either the Payer Australian Business Number or the Payer Withholding Payer Number must be provided.
+            Either the Payer Australian Business Number or the Payer Withholding Payer Number must be provided, but not both.
     
             Legacy Rule Format:
-            (^PAYEVNT2 = NULL AND ^PAYEVNT3 = NULL)
+            ((^PAYEVNT2 = NULL AND ^PAYEVNT3 = NULL) OR (^PAYEVNT2 <> NULL AND ^PAYEVNT3 <> NULL))
 
             Technical Business Rule Format:
-            ^PAYEVNT2 = NULL AND ^PAYEVNT3 = NULL
+            ((^PAYEVNT2 = NULL AND ^PAYEVNT3 = NULL) OR (^PAYEVNT2 <> NULL AND ^PAYEVNT3 <> NULL))
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT2 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNT2 = PAYEVNT:Rp:Identifiers.AustralianBusinessNumber.Identifier
     
-            PAYEVNT:^PAYEVNT3 = pyid.02.00:Identifiers.WithholdingPayerNumber.Identifier
+            ^PAYEVNT3 = PAYEVNT:Rp:Identifiers.WithholdingPayerNumber.Identifier
             */
-            assertion = (report.PAYEVNT2 == null && report.PAYEVNT3 == null);
+            assertion = (report.PAYEVNT2 == null && report.PAYEVNT3 == null || report.PAYEVNT2 != null && report.PAYEVNT3 != null);
             if (assertion)
             {
                 processMessage = new ProcessMessageDocument()
@@ -1133,12 +1146,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AustralianBusinessNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000177" } },
                 };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT2", Value = GetValueOrEmpty(report.PAYEVNT2) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT2", Value = report.PAYEVNT2 });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT3", Value = report.PAYEVNT3 });
+                { Name = "PAYEVNT3", Value = GetValueOrEmpty(report.PAYEVNT3) });
 
                 response.Add(processMessage);
             }
@@ -1157,9 +1169,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT11 = pyde.02.00:AddressDetails.StateOrTerritory.Code
+            ^PAYEVNT11 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.StateOrTerritory.Code
     
-            PAYEVNT:^PAYEVNT14 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNT14 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Country.Code
             */
             assertion = ((report.PAYEVNT14 == null || report.PAYEVNT14 == @"au") && report.PAYEVNT11 == null);
             if (assertion)
@@ -1173,12 +1185,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:StateOrTerritoryC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000178" } },
                 };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT14", Value = GetValueOrEmpty(report.PAYEVNT14) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT14", Value = report.PAYEVNT14 });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT11", Value = report.PAYEVNT11 });
+                { Name = "PAYEVNT11", Value = GetValueOrEmpty(report.PAYEVNT11) });
 
                 response.Add(processMessage);
             }
@@ -1197,7 +1208,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT12 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNT12 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Postcode.Text
             */
             assertion = (report.PAYEVNT12 != null && (AsNumeric(report.PAYEVNT12) < 200 || AsNumeric(report.PAYEVNT12) > 9999));
             if (assertion)
@@ -1211,9 +1222,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000179" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT12", Value = report.PAYEVNT12 });
+                { Name = "PAYEVNT12", Value = GetValueOrEmpty(report.PAYEVNT12) });
 
                 response.Add(processMessage);
             }
@@ -1232,9 +1242,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT12 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNT12 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Postcode.Text
     
-            PAYEVNT:^PAYEVNT14 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNT14 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Country.Code
             */
             assertion = (report.PAYEVNT14 != null && report.PAYEVNT14 != @"au" && report.PAYEVNT12 != null);
             if (assertion)
@@ -1247,12 +1257,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000180" } },
                 };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT14", Value = GetValueOrEmpty(report.PAYEVNT14) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT14", Value = report.PAYEVNT14 });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT12", Value = report.PAYEVNT12 });
+                { Name = "PAYEVNT12", Value = GetValueOrEmpty(report.PAYEVNT12) });
 
                 response.Add(processMessage);
             }
@@ -1271,7 +1280,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT3 = pyid.02.00:Identifiers.WithholdingPayerNumber.Identifier
+            ^PAYEVNT3 = PAYEVNT:Rp:Identifiers.WithholdingPayerNumber.Identifier
             */
             assertion = FailsTFNAlgorithm(report.PAYEVNT3);
             if (assertion)
@@ -1284,9 +1293,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:WithholdingPayerNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000183" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT3", Value = report.PAYEVNT3 });
+                { Name = "PAYEVNT3", Value = GetValueOrEmpty(report.PAYEVNT3) });
 
                 response.Add(processMessage);
             }
@@ -1301,13 +1309,13 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             ((^PAYEVNT14  = "au" OR ^PAYEVNT14 = NULL) AND ^PAYEVNT12 = NULL)
 
             Technical Business Rule Format:
-            ((^PAYEVNT14 = 'au' OR ^PAYEVNT14 = NULL) AND ^PAYEVNT12 = NULL)
+            ((^PAYEVNT14  = 'au' OR ^PAYEVNT14 = NULL) AND ^PAYEVNT12 = NULL)
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT12 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNT12 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Postcode.Text
     
-            PAYEVNT:^PAYEVNT14 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNT14 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Country.Code
             */
             assertion = ((report.PAYEVNT14 == @"au" || report.PAYEVNT14 == null) && report.PAYEVNT12 == null);
             if (assertion)
@@ -1320,12 +1328,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000184" } },
                 };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT14", Value = GetValueOrEmpty(report.PAYEVNT14) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT14", Value = report.PAYEVNT14 });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT12", Value = report.PAYEVNT12 });
+                { Name = "PAYEVNT12", Value = GetValueOrEmpty(report.PAYEVNT12) });
 
                 response.Add(processMessage);
             }
@@ -1344,7 +1351,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT39 = pyin.02.28:Declaration.StatementAccepted.Indicator
+            ^PAYEVNT39 = PAYEVNT:Rp:Declaration:Declaration.StatementAccepted.Indicator
             */
             assertion = (report.PAYEVNT39 != true);
             if (assertion)
@@ -1357,47 +1364,12 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Declaration/tns:StatementAcceptedI",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000185" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT39", Value = GetValueOrEmpty(report.PAYEVNT39) });
 
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNT.000185
-
-            #region VR.ATO.PAYEVNT.000203
-
-            /*  VR.ATO.PAYEVNT.000203
-            The Registered Agent Number has failed the TAN algorithm check.
-    
-            Legacy Rule Format:
-            (^PAYEVNT65 <> NULL AND FailsTANAlgorithm(^PAYEVNT65))
-
-            Technical Business Rule Format:
-            (^PAYEVNT65 <> NULL AND FailsTANAlgorithm(^PAYEVNT65))
-    
-            Data Elements:
-    
-            PAYEVNT:^PAYEVNT65 = pyid.02.00:Identifiers.TaxAgentNumber.Identifier
-            */
-            assertion = (report.PAYEVNT65 != null && FailsTANAlgorithm(report.PAYEVNT65));
-            if (assertion)
-            {
-                processMessage = new ProcessMessageDocument()
-                {
-                    Code = "CMN.ATO.PAYEVNT.000196",
-                    Severity = ProcessMessageSeverity.Error,
-                    Description = @"Registered Agent Number is invalid",
-                    Location = "/tns:PAYEVNT/tns:Int/tns:TaxAgentNumberId",
-                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000203" } },
-                };
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNT65", Value = report.PAYEVNT65 });
-
-                response.Add(processMessage);
-            }
-            #endregion // VR.ATO.PAYEVNT.000203
 
             #region VR.ATO.PAYEVNT.000193
 
@@ -1412,7 +1384,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT69 = pyin.02.00:PaymentRecord.Transaction.Date
+            ^PAYEVNT69 = PAYEVNT:Rp:Payroll:PaymentRecord.Transaction.Date
             */
             assertion = (DateTime.Now.Date >= ConvertToDate(1, 7, 2017) && report.PAYEVNT69.GetValueOrDefault() > DateTime.Now.Date);
             if (assertion)
@@ -1425,7 +1397,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:PaymentRecordTransactionD",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000193" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT69", Value = GetValueOrEmpty(report.PAYEVNT69) });
 
@@ -1439,14 +1410,14 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             Full File Replacement Indicator must be set to false.
     
             Legacy Rule Format:
-            (^PAYEVNT19 = TRUE)
+            ^PAYEVNT19 = TRUE
 
             Technical Business Rule Format:
             ^PAYEVNT19 = TRUE
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT19 = pyin.02.28:Report.Amendment.Indicator
+            ^PAYEVNT19 = PAYEVNT:Rp:Payroll:Report.Amendment.Indicator
             */
             assertion = (report.PAYEVNT19 == true);
             if (assertion)
@@ -1459,7 +1430,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:AmendmentI",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000195" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT19", Value = GetValueOrEmpty(report.PAYEVNT19) });
 
@@ -1480,7 +1450,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT79 = :IncomeTaxAndRemuneration
+            ^PAYEVNT79 = PAYEVNT:Rp:Payroll:IncomeTaxAndRemuneration
             */
             assertion = (Count(report.Rp_Payroll_IncomeTaxAndRemunerationCollectionCount) > 0);
             if (assertion)
@@ -1493,7 +1463,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:IncomeTaxAndRemuneration",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000196" } },
                 };
-
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNT.000196
@@ -1511,7 +1480,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT69 = pyin.02.00:PaymentRecord.Transaction.Date
+            ^PAYEVNT69 = PAYEVNT:Rp:Payroll:PaymentRecord.Transaction.Date
             */
             assertion = (report.PAYEVNT69.GetValueOrDefault() < ConvertToDate(1, 7, 2017));
             if (assertion)
@@ -1524,7 +1493,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:PaymentRecordTransactionD",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000200" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT69", Value = GetValueOrEmpty(report.PAYEVNT69) });
 
@@ -1545,7 +1513,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT42 = pyin.02.29:Declaration.Signature.Date
+            ^PAYEVNT42 = PAYEVNT:Int:Declaration:Declaration.Signature.Date
             */
             assertion = (report.PAYEVNT42.GetValueOrDefault() > DateTime.Now.Date);
             if (assertion)
@@ -1558,7 +1526,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Int/tns:Declaration/tns:SignatureD",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000201" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT42", Value = GetValueOrEmpty(report.PAYEVNT42) });
 
@@ -1579,9 +1546,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
     
             Data Elements:
     
-            PAYEVNT:^PAYEVNT43 = pyin.02.28:Declaration.StatementAccepted.Indicator
+            ^PAYEVNT43 = PAYEVNT:Int:Declaration:Declaration.StatementAccepted.Indicator
     
-            PAYEVNT:^PAYEVNT81 = :Int
+            ^PAYEVNT81 = PAYEVNT:Int
             */
             assertion = (Count(report.IntCollectionCount) > 0 && report.PAYEVNT43 != true);
             if (assertion)
@@ -1594,13 +1561,181 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Int/tns:Declaration/tns:StatementAcceptedI",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000202" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT43", Value = GetValueOrEmpty(report.PAYEVNT43) });
 
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNT.000202
+
+            #region VR.ATO.PAYEVNT.000203
+
+            /*  VR.ATO.PAYEVNT.000203
+            The Registered Agent Number has failed the TAN algorithm check.
+    
+            Legacy Rule Format:
+            (^PAYEVNT65 <> NULL AND FailsTANAlgorithm(^PAYEVNT65))
+
+            Technical Business Rule Format:
+            (^PAYEVNT65 <> NULL AND FailsTANAlgorithm(^PAYEVNT65))
+    
+            Data Elements:
+    
+            ^PAYEVNT65 = PAYEVNT:Int:Identifiers.TaxAgentNumber.Identifier
+            */
+            assertion = (report.PAYEVNT65 != null && FailsTANAlgorithm(report.PAYEVNT65));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.PAYEVNT.000196",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Registered Agent Number is invalid",
+                    Location = "/tns:PAYEVNT/tns:Int/tns:TaxAgentNumberId",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000203" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT65", Value = GetValueOrEmpty(report.PAYEVNT65) });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNT.000203
+
+            #region VR.ATO.PAYEVNT.000204
+
+            /*  VR.ATO.PAYEVNT.000204
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' " , . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNT8 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNT8, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNT8 <> BLANK) AND (NotCharacterInSet(^PAYEVNT8, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNT8 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Line1.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT8) != true && !(IsMatch(report.PAYEVNT8, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500026",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Address Line 1 contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:Line1T",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000204" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT8", Value = report.PAYEVNT8 });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNT.000204
+
+            #region VR.ATO.PAYEVNT.000205
+
+            /*  VR.ATO.PAYEVNT.000205
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' " , . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNT9 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNT9, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNT9 <> BLANK) AND (NotCharacterInSet(^PAYEVNT9, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNT9 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.Line2.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT9) != true && !(IsMatch(report.PAYEVNT9, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500027",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Address Line 2 contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:Line2T",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000205" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT9", Value = GetValueOrEmpty(report.PAYEVNT9) });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNT.000205
+
+            #region VR.ATO.PAYEVNT.000206
+
+            /*  VR.ATO.PAYEVNT.000206
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' " , . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNT10 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNT10, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNT10 <> BLANK) AND (NotCharacterInSet(^PAYEVNT10, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNT10 = PAYEVNT:Rp:AddressDetailsPostal:AddressDetails.LocalityName.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT10) != true && !(IsMatch(report.PAYEVNT10, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500028",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Suburb/Town/City contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNT/tns:Rp/tns:AddressDetailsPostal/tns:LocalityNameT",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000206" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT10", Value = report.PAYEVNT10 });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNT.000206
+
+            #region VR.ATO.PAYEVNT.000207
+
+            /*  VR.ATO.PAYEVNT.000207
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' " , . ? / { } | ~ ` _ or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNT84 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNT84, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/", "{", "}", "|", "~", "`", "_", " "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNT84 <> BLANK) AND (NotCharacterInSet(^PAYEVNT84, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/", "{", "}", "|", "~", "`", "_", " "')))
+    
+            Data Elements:
+    
+            ^PAYEVNT84 = PAYEVNT:Rp:Payroll:Interaction.Transaction.Identifier
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNT84) != true && !(IsMatch(report.PAYEVNT84, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/\{\}\|\~`_ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.PAYEVNT.000209",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Characters used must be valid characters for a submission ID",
+                    LongDescription = @"A text character in a submission ID must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / { } | ~ ` _ or a space character",
+                    Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:InteractionTransactionId",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000207" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNT84", Value = report.PAYEVNT84 });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNT.000207
 
             #region VR.ATO.PAYEVNT.000194
 
@@ -1630,7 +1765,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:MessageTimestampGenerationDt",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000194" } },
                 };
-
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNT71", Value = (report.PAYEVNT71.HasValue) ? report.PAYEVNT71.Value.ToUniversalTime().ToString("u") : string.Empty });
 
@@ -1672,6 +1806,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             return response;
         }
+
         public List<ProcessMessageDocument> ValidateCrossformReport(PAYEVNT2018 report, PAYEVNTEMP2018 childReport, int childcount = 0)
         {
             List<ProcessMessageDocument> response = new List<ProcessMessageDocument>();
@@ -1680,12 +1815,12 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             bool assertion;
             
             this.ConsumedChildReport = childReport;
-
+            
             #region VR.ATO.PAYEVNT.000192
 
-            /*  VR.ATO.PAYEVNT.000192 - Documented in ATO PAYEVNT.0003 2018 Valdiation Rules
+            /*  VR.ATO.PAYEVNT.000192
             At least one PAYEVNTEMP child must be provided
-    
+
             Legacy Rule Format:
             Count(^PAYEVNTEMP) = 0
 
@@ -1704,7 +1839,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = null,
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000192" } },
                 };
-
+                
                 processMessage.Parameters.Add(new ProcessMessageParameter { Name = "PAYEVNTEMP", Value = "PAYEVNTEMP" });
 
                 response.Add(processMessage);
@@ -1713,9 +1848,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             #region VR.ATO.PAYEVNT.000191
 
-            /*  VR.ATO.PAYEVNT.000191 - Documented in ATO PAYEVNT.0003 2018 Valdiation Rules
+            /*  VR.ATO.PAYEVNT.000191
             Payee Record Count must be equal to the number of children (PAYEVNTEMP)
-    
+
             Legacy Rule Format:
             (^PAYEVNT70 <> Count(^PAYEVNTEMP))
 
@@ -1724,6 +1859,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
             */
 
             assertion = (report.PAYEVNT70.GetValueOrDefault() != childcount);
+            
             if (assertion)
             {
                 processMessage = new ProcessMessageDocument()
@@ -1734,7 +1870,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                     Location = "/tns:PAYEVNT/tns:Rp/tns:Payroll/tns:InteractionRecordCt",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNT.000191" } },
                 };
-
+                
                 processMessage.Parameters.Add(new ProcessMessageParameter { Name = "PAYEVNT70", Value = report.PAYEVNT70.ToString() });
 
                 response.Add(processMessage);
@@ -1743,9 +1879,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             #region VR.ATO.PAYEVNTEMP.000180
 
-            /*  VR.ATO.PAYEVNTEMP.000180 - Documented in ATO PAYEVNTEMP.0003 2018 Valdiation Rules
+            /*  VR.ATO.PAYEVNTEMP.000180
             Both ETP Payment Date as well as Pay/Update Date must be in the same financial year.
-    
+
             Technical Business Rule Format:
             (FinancialYear(^PAYEVNTEMP123) <> FinancialYear(^PAYEVNT69))
             */
@@ -1771,7 +1907,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                             Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:EmploymentTerminationPaymentCollection/tns:EmploymentTerminationPayment/tns:PaymentRecordPaymentEffectiveD",
                             Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000180" } },
                         };
-
+                        
                         processMessage.Parameters.Add(new ProcessMessageParameter { Name = "PAYEVNTEMP123", Value = employmentTerminationPayment.PAYEVNTEMP123.ToString() });
 
                         response.Add(processMessage);
@@ -1783,9 +1919,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
 
             #region VR.ATO.PAYEVNTEMP.000179
 
-            /*  VR.ATO.PAYEVNTEMP.000179 - Documented in ATO PAYEVNTEMP.0003 2018 Valdiation Rules
+            /*  VR.ATO.PAYEVNTEMP.000179
             Both the Period Start Date and the Pay/Update Date must be within the same financial year.
-    
+
             Technical Business Rule Format:
             (FinancialYear(^PAYEVNTEMP29) <> FinancialYear(^PAYEVNT69))
             */
@@ -1806,9 +1942,10 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNT
                             Severity = ProcessMessageSeverity.Error,
                             Description = @"The Period Start Date must be within the same financial year as the Pay/Update Date",
                             Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:PayrollPeriod/tns:StartD",
-                            Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "CMN.ATO.PAYEVNTEMP.000179" } },
+                            Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000179" } },
                         };
-
+                        
+                        processMessage.Parameters.Add(new ProcessMessageParameter { Name = "PAYEVNT69", Value = report.PAYEVNT69.ToString() });
                         processMessage.Parameters.Add(new ProcessMessageParameter { Name = "PAYEVNTEMP29", Value = childReport.PAYEVNTEMP29.ToString() });
 
                         response.Add(processMessage);

@@ -4,7 +4,7 @@
 // 
 //     Manual changes to this file will be overwritten if the code is regenerated.
 //
-//     Generated on 2018-02-16T11:10:24, by ESR Version 1.71.0.0 using ESR Database 
+//     Generated on 2018-10-02T14:09:18, by ESR Version 1.82.0.0 using ESR Database SWS_EA_ESR_Cloud_Prod
 //  </auto-generated>
 // ------------------------------------------------------------------------------
 

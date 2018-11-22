@@ -5,7 +5,7 @@
 		<xs:annotation>
 			<xs:documentation>This schema was generated from a template.</xs:documentation>
 			<xs:documentation>Manual changes to this file will be overwritten if the schema is regenerated.</xs:documentation>
-			<xs:documentation>Generated on 2018-02-16T11:10:24, by ESR Version 1.71.0.0 using ESR Database </xs:documentation>
+			<xs:documentation>Generated on 2018-10-02T14:09:18, by ESR Version 1.82.0.0 using ESR Database SWS_EA_ESR_Cloud_Prod</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
 			<xs:element minOccurs="1" maxOccurs="1" name="Rp" type="tns:Rp">

@@ -4,7 +4,7 @@
 // 
 //     Manual changes to this file will be overwritten if the code is regenerated.
 //
-//     Generated on 2017-12-19T11:33:45, by ESR Version 1.69.0.0 using ESR Database 
+//     Generated on 2018-10-02T14:23:14, by ESR Version 1.82.0.0 using ESR Database SWS_EA_ESR_Cloud_Prod
 //  </auto-generated>
 // ------------------------------------------------------------------------------
 
@@ -119,10 +119,25 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
 
         private static string GetValueOrEmpty(bool? val)
         {
-            return (val.HasValue) ? val.ToString() : string.Empty;
+            return (val.HasValue) ? val.ToString().ToLower() : string.Empty;
         }
 
         private static string GetValueOrEmpty(DateTime? val)
+        {
+            return (val.HasValue) ? val.ToString() : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(string val)
+        {
+            return !string.IsNullOrWhiteSpace(val) ? val : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(decimal? val)
+        {
+            return (val.HasValue) ? val.ToString() : string.Empty;
+        }
+
+        private static string GetValueOrEmpty(int? val)
         {
             return (val.HasValue) ? val.ToString() : string.Empty;
         }
@@ -273,6 +288,12 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
 
             return response;
         }
+
+        public DateTime Date(DateTime? datetime)
+        {
+            return datetime.GetValueOrDefault().Date;
+        }
+
         //The logic in After function expects "---" for day and "--" for month. 
         //Since hyphen was missing the date always returned null
         public DateTime? ConvertToDate(int day, int month, int year)
@@ -605,7 +626,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
 
         private static bool FailsUSIAlgorithm(string usi, string abn)
         {
-            bool response;
+            bool response = true;
             if (usi == null || abn == null)
             {
                 response = false;
@@ -614,24 +635,22 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
             {
                 usi = usi.Trim();
                 abn = abn.Trim();
-                if (usi.Length < 13 || abn.Length < 11)
-                {
-                    response = false;
-                }
-                else
+                if (usi.Length == 14)
                 {
                     int numeric;
-                    if (usi.Substring(0, 11) == abn && int.TryParse(usi.Substring(11, 2), out numeric))
+                    if (usi.Substring(0, 11) == abn && int.TryParse(usi.Substring(11, 3), out numeric))
                         response = false;
-                    else if (Regex.IsMatch(usi, @"^[a-zA-Z]{3}\d{4}[a-zA-Z]{2}"))
+
+                }
+                else if (usi.Length == 9)
+                {
+
+                    if (Regex.IsMatch(usi, @"^([a-zA-Z]{3}\d{4}[a-zA-Z]{2})$"))
                         response = false;
-                    else
-                        response = true;
                 }
             }
             return response;
         }
-
 
         private static bool FailsTANAlgorithm(string tan)
         {
@@ -913,9 +932,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
             
                     Data Elements:
             
-                    PAYEVNTEMP:^PAYEVNTEMP8 = lrla.02.20:IncomeTax.OtherAllowanceType.Description
+                    ^PAYEVNTEMP8 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:Allowance:IncomeTax.OtherAllowanceType.Description
             
-                    PAYEVNTEMP:^PAYEVNTEMP7 = lrla.02.20:Remuneration.AllowanceType.Code
+                    ^PAYEVNTEMP7 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:Allowance:Remuneration.AllowanceType.Code
                     */
                     assertion = (allowance.PAYEVNTEMP7 == @"Other" && string.IsNullOrWhiteSpace(allowance.PAYEVNTEMP8) == true);
                     if (assertion)
@@ -928,12 +947,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                             Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:AllowanceCollection/tns:Allowance" + OccurrenceIndex(allowance.OccurrenceIndex) + "/tns:OtherAllowanceTypeDe",
                             Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000012" } },
                         };
-                        
                         processMessage.Parameters.Add(new ProcessMessageParameter
                         { Name = "PAYEVNTEMP7", Value = allowance.PAYEVNTEMP7 });
 
                         processMessage.Parameters.Add(new ProcessMessageParameter
-                        { Name = "PAYEVNTEMP8", Value = allowance.PAYEVNTEMP8 });
+                        { Name = "PAYEVNTEMP8", Value = GetValueOrEmpty(allowance.PAYEVNTEMP8) });
 
                         response.Add(processMessage);
                     }
@@ -956,7 +974,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP13 = pyid.02.00:Identifiers.TaxFileNumber.Identifier
+            ^PAYEVNTEMP13 = PAYEVNTEMP:Payee:Identifiers:Identifiers.TaxFileNumber.Identifier
             */
             assertion = (report.PAYEVNTEMP13 != null && !(IsMatch(report.PAYEVNTEMP13, @"^(000000000|111111111|333333333|444444444|987654321)$", RegexOptions.IgnoreCase)) && FailsTFNAlgorithm(report.PAYEVNTEMP13));
             if (assertion)
@@ -969,9 +987,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Identifiers/tns:TaxFileNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000019" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP13", Value = report.PAYEVNTEMP13 });
+                { Name = "PAYEVNTEMP13", Value = GetValueOrEmpty(report.PAYEVNTEMP13) });
 
                 response.Add(processMessage);
             }
@@ -990,9 +1007,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP24 = pyde.02.00:AddressDetails.StateOrTerritory.Code
+            ^PAYEVNTEMP24 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.StateOrTerritory.Code
     
-            PAYEVNTEMP:^PAYEVNTEMP27 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNTEMP27 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Country.Code
             */
             assertion = ((report.PAYEVNTEMP27 == null || report.PAYEVNTEMP27 == @"au") && report.PAYEVNTEMP24 == null);
             if (assertion)
@@ -1005,12 +1022,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:StateOrTerritoryC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000033" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP27", Value = report.PAYEVNTEMP27 });
+                { Name = "PAYEVNTEMP27", Value = GetValueOrEmpty(report.PAYEVNTEMP27) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP24", Value = report.PAYEVNTEMP24 });
+                { Name = "PAYEVNTEMP24", Value = GetValueOrEmpty(report.PAYEVNTEMP24) });
 
                 response.Add(processMessage);
             }
@@ -1029,7 +1045,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP25 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNTEMP25 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Postcode.Text
             */
             assertion = (report.PAYEVNTEMP25 != null && (AsNumeric(report.PAYEVNTEMP25) < 200 || AsNumeric(report.PAYEVNTEMP25) > 9999));
             if (assertion)
@@ -1043,9 +1059,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000034" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP25", Value = report.PAYEVNTEMP25 });
+                { Name = "PAYEVNTEMP25", Value = GetValueOrEmpty(report.PAYEVNTEMP25) });
 
                 response.Add(processMessage);
             }
@@ -1064,9 +1079,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP25 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNTEMP25 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Postcode.Text
     
-            PAYEVNTEMP:^PAYEVNTEMP27 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNTEMP27 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Country.Code
             */
             assertion = (report.PAYEVNTEMP27 != null && report.PAYEVNTEMP27 != @"au" && report.PAYEVNTEMP25 != null);
             if (assertion)
@@ -1080,12 +1095,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000035" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP27", Value = report.PAYEVNTEMP27 });
+                { Name = "PAYEVNTEMP27", Value = GetValueOrEmpty(report.PAYEVNTEMP27) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP25", Value = report.PAYEVNTEMP25 });
+                { Name = "PAYEVNTEMP25", Value = GetValueOrEmpty(report.PAYEVNTEMP25) });
 
                 response.Add(processMessage);
             }
@@ -1104,7 +1118,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP91 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNTEMP91 = PAYEVNTEMP:Payee:Identifiers:Identifiers.AustralianBusinessNumber.Identifier
             */
             assertion = (report.PAYEVNTEMP91 != null && FailsABNAlgorithm(report.PAYEVNTEMP91));
             if (assertion)
@@ -1117,9 +1131,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Identifiers/tns:AustralianBusinessNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000126" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP91", Value = report.PAYEVNTEMP91 });
+                { Name = "PAYEVNTEMP91", Value = GetValueOrEmpty(report.PAYEVNTEMP91) });
 
                 response.Add(processMessage);
             }
@@ -1138,9 +1151,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP24 = pyde.02.00:AddressDetails.StateOrTerritory.Code
+            ^PAYEVNTEMP24 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.StateOrTerritory.Code
     
-            PAYEVNTEMP:^PAYEVNTEMP27 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNTEMP27 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Country.Code
             */
             assertion = (report.PAYEVNTEMP27 != null && report.PAYEVNTEMP27 != @"au" && report.PAYEVNTEMP24 != null);
             if (assertion)
@@ -1154,12 +1167,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:StateOrTerritoryC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000130" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP27", Value = report.PAYEVNTEMP27 });
+                { Name = "PAYEVNTEMP27", Value = GetValueOrEmpty(report.PAYEVNTEMP27) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP24", Value = report.PAYEVNTEMP24 });
+                { Name = "PAYEVNTEMP24", Value = GetValueOrEmpty(report.PAYEVNTEMP24) });
 
                 response.Add(processMessage);
             }
@@ -1178,7 +1190,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP94 = pyde.02.00:ElectronicContact.ElectronicMail.Address.Text
+            ^PAYEVNTEMP94 = PAYEVNTEMP:Payee:ElectronicContact:ElectronicContact.ElectronicMail.Address.Text
             */
             assertion = (string.IsNullOrWhiteSpace(report.PAYEVNTEMP94) != true && !(IsMatch(report.PAYEVNTEMP94, @"^\S.*@.+\.\S+$")));
             if (assertion)
@@ -1192,9 +1204,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:ElectronicContact/tns:ElectronicMailAddressT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000131" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP94", Value = report.PAYEVNTEMP94 });
+                { Name = "PAYEVNTEMP94", Value = GetValueOrEmpty(report.PAYEVNTEMP94) });
 
                 response.Add(processMessage);
             }
@@ -1209,13 +1220,13 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
             ((^PAYEVNTEMP27  = "au" OR ^PAYEVNTEMP27 = NULL) AND ^PAYEVNTEMP25 = NULL)
 
             Technical Business Rule Format:
-            ((^PAYEVNTEMP27 = 'au' OR ^PAYEVNTEMP27 = NULL) AND ^PAYEVNTEMP25 = NULL)
+            ((^PAYEVNTEMP27  = 'au' OR ^PAYEVNTEMP27 = NULL) AND ^PAYEVNTEMP25 = NULL)
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP25 = pyde.02.00:AddressDetails.Postcode.Text
+            ^PAYEVNTEMP25 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Postcode.Text
     
-            PAYEVNTEMP:^PAYEVNTEMP27 = pyde.02.08:AddressDetails.Country.Code
+            ^PAYEVNTEMP27 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Country.Code
             */
             assertion = ((report.PAYEVNTEMP27 == @"au" || report.PAYEVNTEMP27 == null) && report.PAYEVNTEMP25 == null);
             if (assertion)
@@ -1228,12 +1239,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:PostcodeT",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000154" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP27", Value = report.PAYEVNTEMP27 });
+                { Name = "PAYEVNTEMP27", Value = GetValueOrEmpty(report.PAYEVNTEMP27) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP25", Value = report.PAYEVNTEMP25 });
+                { Name = "PAYEVNTEMP25", Value = GetValueOrEmpty(report.PAYEVNTEMP25) });
 
                 response.Add(processMessage);
             }
@@ -1252,11 +1262,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP204 = pyde.02.00:PersonDemographicDetails.Birth.Year
+            ^PAYEVNTEMP204 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.Year
     
-            PAYEVNTEMP:^PAYEVNTEMP203 = pyde.02.00:PersonDemographicDetails.Birth.Month
+            ^PAYEVNTEMP203 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.Month
     
-            PAYEVNTEMP:^PAYEVNTEMP205 = pyde.02.00:PersonDemographicDetails.Birth.DayofMonth
+            ^PAYEVNTEMP205 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.DayofMonth
             */
             assertion = (report.PAYEVNTEMP204.GetValueOrDefault() > Year(DateTime.Now.Date) || report.PAYEVNTEMP204.GetValueOrDefault() == Year(DateTime.Now.Date) && (report.PAYEVNTEMP203.GetValueOrDefault() > MonthAsInt(DateTime.Now.Date) || report.PAYEVNTEMP203.GetValueOrDefault() == MonthAsInt(DateTime.Now.Date) && report.PAYEVNTEMP205.GetValueOrDefault() > Day(DateTime.Now.Date)));
             if (assertion)
@@ -1269,15 +1279,14 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:PersonDemographicDetails/tns:BirthY",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000166" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP204", Value = report.PAYEVNTEMP204.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP204", Value = GetValueOrEmpty(report.PAYEVNTEMP204) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP203", Value = report.PAYEVNTEMP203.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP203", Value = GetValueOrEmpty(report.PAYEVNTEMP203) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP205", Value = report.PAYEVNTEMP205.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP205", Value = GetValueOrEmpty(report.PAYEVNTEMP205) });
 
                 response.Add(processMessage);
             }
@@ -1296,9 +1305,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP13 = pyid.02.00:Identifiers.TaxFileNumber.Identifier
+            ^PAYEVNTEMP13 = PAYEVNTEMP:Payee:Identifiers:Identifiers.TaxFileNumber.Identifier
     
-            PAYEVNTEMP:^PAYEVNTEMP91 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNTEMP91 = PAYEVNTEMP:Payee:Identifiers:Identifiers.AustralianBusinessNumber.Identifier
             */
             assertion = (report.PAYEVNTEMP13 == null && report.PAYEVNTEMP91 == null);
             if (assertion)
@@ -1312,12 +1321,11 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Identifiers/tns:TaxFileNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000167" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP13", Value = report.PAYEVNTEMP13 });
+                { Name = "PAYEVNTEMP13", Value = GetValueOrEmpty(report.PAYEVNTEMP13) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP91", Value = report.PAYEVNTEMP91 });
+                { Name = "PAYEVNTEMP91", Value = GetValueOrEmpty(report.PAYEVNTEMP91) });
 
                 response.Add(processMessage);
             }
@@ -1336,7 +1344,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP10 = lrla.02.20:Remuneration.DeductionType.Code
+            ^PAYEVNTEMP10 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:Deduction:Remuneration.DeductionType.Code
             */
             assertion = HasDuplicateValues(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection == null ? null : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection.Select(f => f.PAYEVNTEMP10).Cast<object>().ToArray());
             if (assertion)
@@ -1350,54 +1358,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:DeductionCollection/tns:Deduction[" + report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection[DuplicateValueIndex(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection.Select(f => f.PAYEVNTEMP10))].OccurrenceIndex + "]/tns:TypeC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000168" } },
                 };
-                
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNTEMP.000168
-
-            #region VR.ATO.PAYEVNTEMP.000183
-
-            /*  VR.ATO.PAYEVNTEMP.000183
-            When Payee Day of Birth, Payee Month of Birth and Payee Year of Birth are supplied, it must be a valid date.
-    
-            Legacy Rule Format:
-            (^PAYEVNTEMP205 <> NULL AND ^PAYEVNTEMP203 <> NULL AND ^PAYEVNTEMP204 <> NULL AND (IsDate(ConvertToDate(^PAYEVNTEMP205, ^PAYEVNTEMP203, ^PAYEVNTEMP204)) = 'FALSE' ))
-
-            Technical Business Rule Format:
-            (^PAYEVNTEMP205 <> NULL AND ^PAYEVNTEMP203 <> NULL AND ^PAYEVNTEMP204 <> NULL AND (IsDate(ConvertToDate(^PAYEVNTEMP205, ^PAYEVNTEMP203, ^PAYEVNTEMP204)) = 'FALSE'))
-    
-            Data Elements:
-    
-            PAYEVNTEMP:^PAYEVNTEMP205 = pyde.02.00:PersonDemographicDetails.Birth.DayofMonth
-    
-            PAYEVNTEMP:^PAYEVNTEMP203 = pyde.02.00:PersonDemographicDetails.Birth.Month
-    
-            PAYEVNTEMP:^PAYEVNTEMP204 = pyde.02.00:PersonDemographicDetails.Birth.Year
-            */
-            assertion = (report.PAYEVNTEMP205 != null && report.PAYEVNTEMP203 != null && report.PAYEVNTEMP204 != null && IsDate(ConvertToDate(report.PAYEVNTEMP205.GetValueOrDefault(), report.PAYEVNTEMP203.GetValueOrDefault(), report.PAYEVNTEMP204.GetValueOrDefault())) == false);
-            if (assertion)
-            {
-                processMessage = new ProcessMessageDocument()
-                {
-                    Code = "CMN.ATO.PAYEVNTEMP.000169",
-                    Severity = ProcessMessageSeverity.Error,
-                    Description = @"Date of birth is invalid",
-                    Location = "/tns:PAYEVNTEMP/tns:Payee/tns:PersonDemographicDetails/tns:BirthDm",
-                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000183" } },
-                };
-                
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP205", Value = report.PAYEVNTEMP205.GetValueOrDefault().ToString() });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP203", Value = report.PAYEVNTEMP203.GetValueOrDefault().ToString() });
-
-                processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP204", Value = report.PAYEVNTEMP204.GetValueOrDefault().ToString() });
-
-                response.Add(processMessage);
-            }
-            #endregion // VR.ATO.PAYEVNTEMP.000183
 
             #region VR.ATO.PAYEVNTEMP.000171
 
@@ -1412,13 +1375,13 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP91 = pyid.02.00:Identifiers.AustralianBusinessNumber.Identifier
+            ^PAYEVNTEMP91 = PAYEVNTEMP:Payee:Identifiers:Identifiers.AustralianBusinessNumber.Identifier
     
-            PAYEVNTEMP:^PAYEVNTEMP217 = :VoluntaryAgreement
+            ^PAYEVNTEMP57 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement:Remuneration.VoluntaryAgreementGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP57 = lrla.02.00:Remuneration.VoluntaryAgreementGross.Amount
+            ^PAYEVNTEMP115 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP115 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP217 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement
             */
             assertion = (report.PAYEVNTEMP91 == null && (Count(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_VoluntaryAgreementCollectionCount) > 0 && (report.PAYEVNTEMP57.GetValueOrDefault() > 0 || report.PAYEVNTEMP115.GetValueOrDefault() > 0)));
             if (assertion)
@@ -1432,15 +1395,14 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Identifiers/tns:AustralianBusinessNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000171" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP91", Value = report.PAYEVNTEMP91 });
+                { Name = "PAYEVNTEMP91", Value = GetValueOrEmpty(report.PAYEVNTEMP91) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP57", Value = report.PAYEVNTEMP57.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP57", Value = GetValueOrEmpty(report.PAYEVNTEMP57) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP115", Value = report.PAYEVNTEMP115.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP115", Value = GetValueOrEmpty(report.PAYEVNTEMP115) });
 
                 response.Add(processMessage);
             }
@@ -1459,9 +1421,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP34 = rvctc2.02.11:IncomeTax.PayAsYouGoWithholding.EmploymentTerminationPaymentType.Code
+            ^PAYEVNTEMP34 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:EmploymentTerminationPayment:IncomeTax.PayAsYouGoWithholding.EmploymentTerminationPaymentType.Code
     
-            PAYEVNTEMP:^PAYEVNTEMP123 = pyin.02.00:PaymentRecord.PaymentEffective.Date
+            ^PAYEVNTEMP123 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:EmploymentTerminationPayment:PaymentRecord.PaymentEffective.Date
             */
             assertion = HasDuplicateValues(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection == null ? null : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection.Select(f => f.PAYEVNTEMP34 + f.PAYEVNTEMP123).Cast<object>().ToArray());
             if (assertion)
@@ -1475,7 +1437,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:EmploymentTerminationPaymentCollection/tns:EmploymentTerminationPayment[" + report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection[DuplicateValueIndex(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection.Select(f => f.PAYEVNTEMP34 + f.PAYEVNTEMP123))].OccurrenceIndex + "]/tns:TypeC",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000172" } },
                 };
-                
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNTEMP.000172
@@ -1493,9 +1454,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP30 = pyin.02.00:Period.End.Date
+            ^PAYEVNTEMP30 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:PayrollPeriod:Period.End.Date
     
-            PAYEVNTEMP:^PAYEVNTEMP29 = pyin.02.00:Period.Start.Date
+            ^PAYEVNTEMP29 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:PayrollPeriod:Period.Start.Date
             */
             assertion = (report.PAYEVNTEMP29.GetValueOrDefault() != report.PAYEVNTEMP30.GetValueOrDefault());
             if (assertion)
@@ -1508,7 +1469,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:PayrollPeriod/tns:EndD",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000174" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNTEMP29", Value = GetValueOrEmpty(report.PAYEVNTEMP29) });
 
@@ -1532,7 +1492,7 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP232 = :Onboarding
+            ^PAYEVNTEMP232 = PAYEVNTEMP:Payee:Onboarding
             */
             assertion = (Count(report.Payee_OnboardingCollectionCount) > 0);
             if (assertion)
@@ -1545,7 +1505,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Onboarding",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000175" } },
                 };
-                
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNTEMP.000175
@@ -1563,69 +1522,69 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP13 = pyid.02.00:Identifiers.TaxFileNumber.Identifier
+            ^PAYEVNTEMP13 = PAYEVNTEMP:Payee:Identifiers:Identifiers.TaxFileNumber.Identifier
     
-            PAYEVNTEMP:^PAYEVNTEMP62 = lrla.02.20:Remuneration.IndividualNonBusinessEmploymentAllowances.Amount
+            ^PAYEVNTEMP47 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IndividualNonBusiness:Remuneration.IndividualNonBusinessGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP87 = lrla.02.21:Remuneration.Deduction.Amount
+            ^PAYEVNTEMP48 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:LabourHireArrangementPayment:Remuneration.LabourHireArrangementPaymentGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP111 = emsup.02.19:SuperannuationContribution.EmployerReportable.Amount
+            ^PAYEVNTEMP49 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IndividualNonBusiness:Remuneration.IndividualNonBusinessExemptForeignEmploymentIncome.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP217 = :VoluntaryAgreement
+            ^PAYEVNTEMP50 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:EmploymentTerminationPayment:IncomeTax.Superannuation.TaxFreeComponent.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP57 = lrla.02.00:Remuneration.VoluntaryAgreementGross.Amount
+            ^PAYEVNTEMP51 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:EmploymentTerminationPayment:IncomeTax.Superannuation.EmploymentTerminationTaxableComponentTotal.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP115 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP52 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:UnusedAnnualOrLongServiceLeavePayment:LumpSumPaymentA:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumA.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP52 = lrla.02.00:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumA.Amount
+            ^PAYEVNTEMP54 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:UnusedAnnualOrLongServiceLeavePayment:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumB.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP54 = lrla.02.00:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumB.Amount
+            ^PAYEVNTEMP55 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:UnusedAnnualOrLongServiceLeavePayment:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumD.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP55 = lrla.02.00:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumD.Amount
+            ^PAYEVNTEMP56 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:UnusedAnnualOrLongServiceLeavePayment:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumE.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP56 = lrla.02.00:Remuneration.UnusedAnnualOrLongServiceLeavePaymentLumpSumE.Amount
+            ^PAYEVNTEMP57 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement:Remuneration.VoluntaryAgreementGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP125 = bafpr1.02.32:Income.FringeBenefitsReportable.Amount
+            ^PAYEVNTEMP60 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IndividualNonBusiness:Remuneration.IndividualNonBusinessCommunityDevelopmentEmploymentProject.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP126 = bafpr1.02.23:Income.FringeBenefitsReportable.Amount
+            ^PAYEVNTEMP62 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:Allowance:Remuneration.IndividualNonBusinessEmploymentAllowances.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP122 = lrla.02.00:Remuneration.SpecifiedByRegulationPaymentGross.Amount
+            ^PAYEVNTEMP87 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:Deduction:Remuneration.Deduction.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP116 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP111 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:SuperannuationContribution:SuperannuationContribution.EmployerReportable.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP120 = lrla.02.21:Remuneration.JointPetroleumDevelopmentAreaPayment.Amount
+            ^PAYEVNTEMP112 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:PaymentToForeignResident:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP132 = rvctc1.02.29:IncomeTax.ForeignWithholding.Amount
+            ^PAYEVNTEMP113 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:JointPetroleumDevelopmentAreaPayment:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP113 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP114 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:LabourHireArrangementPayment:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP200 = lrla.02.22:Remuneration.WorkingHolidayMakerGross.Amount
+            ^PAYEVNTEMP115 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP201 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP116 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:SpecifiedByRegulationPayment:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP47 = lrla.02.00:Remuneration.IndividualNonBusinessGross.Amount
+            ^PAYEVNTEMP117 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:EmploymentTerminationPayment:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP60 = lrla.02.00:Remuneration.IndividualNonBusinessCommunityDevelopmentEmploymentProject.Amount
+            ^PAYEVNTEMP119 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:PaymentToForeignResident:Remuneration.PaymentToForeignResidentGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP130 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP120 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:JointPetroleumDevelopmentAreaPayment:Remuneration.JointPetroleumDevelopmentAreaPayment.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP49 = lrla.02.01:Remuneration.IndividualNonBusinessExemptForeignEmploymentIncome.Amount
+            ^PAYEVNTEMP122 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:SpecifiedByRegulationPayment:Remuneration.SpecifiedByRegulationPaymentGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP48 = lrla.02.00:Remuneration.LabourHireArrangementPaymentGross.Amount
+            ^PAYEVNTEMP125 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IncomeFringeBenefitsReportable:Taxable:Income.FringeBenefitsReportable.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP114 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP126 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IncomeFringeBenefitsReportable:Exempt:Income.FringeBenefitsReportable.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP237 = rvctc2.02.29:IncomeTax.ForeignWithholding.Amount
+            ^PAYEVNTEMP130 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:IndividualNonBusiness:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP112 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP132 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:JointPetroleumDevelopmentAreaPayment:IncomeTax.ForeignWithholding.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP119 = lrla.02.00:Remuneration.PaymentToForeignResidentGross.Amount
+            ^PAYEVNTEMP200 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:WorkingHolidayMaker:Remuneration.WorkingHolidayMakerGross.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP50 = rvctc2.02.10:IncomeTax.Superannuation.TaxFreeComponent.Amount
+            ^PAYEVNTEMP201 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:WorkingHolidayMaker:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP51 = rvctc2.02.00:IncomeTax.Superannuation.EmploymentTerminationTaxableComponentTotal.Amount
+            ^PAYEVNTEMP217 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:VoluntaryAgreement
     
-            PAYEVNTEMP:^PAYEVNTEMP117 = rvctc2.02.12:IncomeTax.PayAsYouGoWithholding.TaxWithheld.Amount
+            ^PAYEVNTEMP237 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:PaymentToForeignResident:IncomeTax.ForeignWithholding.Amount
             */
             assertion = (report.PAYEVNTEMP13 == null && ((report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_AllowanceCollection == null ? false : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_AllowanceCollection.Any(PAYEVNTEMP62Repeat => PAYEVNTEMP62Repeat.PAYEVNTEMP62.GetValueOrDefault() > 0)) == true || (report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection == null ? false : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_DeductionCollection.Any(PAYEVNTEMP87Repeat => PAYEVNTEMP87Repeat.PAYEVNTEMP87.GetValueOrDefault() > 0)) == true || report.PAYEVNTEMP111.GetValueOrDefault() > 0 && (Count(report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_VoluntaryAgreementCollectionCount) == 0 || report.PAYEVNTEMP57 == 0 && report.PAYEVNTEMP115 == 0) || report.PAYEVNTEMP52.GetValueOrDefault() > 0 || report.PAYEVNTEMP54.GetValueOrDefault() > 0 || report.PAYEVNTEMP55.GetValueOrDefault() > 0 || report.PAYEVNTEMP56.GetValueOrDefault() > 0 || report.PAYEVNTEMP125.GetValueOrDefault() > 0 || report.PAYEVNTEMP126.GetValueOrDefault() > 0 || report.PAYEVNTEMP122.GetValueOrDefault() > 0 || report.PAYEVNTEMP116.GetValueOrDefault() > 0 || report.PAYEVNTEMP120.GetValueOrDefault() > 0 || report.PAYEVNTEMP132.GetValueOrDefault() > 0 || report.PAYEVNTEMP113.GetValueOrDefault() > 0 || report.PAYEVNTEMP200.GetValueOrDefault() > 0 || report.PAYEVNTEMP201.GetValueOrDefault() > 0 || report.PAYEVNTEMP47.GetValueOrDefault() > 0 || report.PAYEVNTEMP60.GetValueOrDefault() > 0 || report.PAYEVNTEMP130.GetValueOrDefault() > 0 || report.PAYEVNTEMP49.GetValueOrDefault() > 0 || report.PAYEVNTEMP48.GetValueOrDefault() > 0 || report.PAYEVNTEMP114.GetValueOrDefault() > 0 || report.PAYEVNTEMP237.GetValueOrDefault() > 0 || report.PAYEVNTEMP112.GetValueOrDefault() > 0 || report.PAYEVNTEMP119.GetValueOrDefault() > 0 || (report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection == null ? false : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection.Any(PAYEVNTEMP50Repeat => PAYEVNTEMP50Repeat.PAYEVNTEMP50.GetValueOrDefault() > 0)) == true || (report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection == null ? false : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection.Any(PAYEVNTEMP51Repeat => PAYEVNTEMP51Repeat.PAYEVNTEMP51.GetValueOrDefault() > 0)) == true || (report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection == null ? false : report.Payee_RemunerationIncomeTaxPayAsYouGoWithholding_EmploymentTerminationPaymentCollection.Any(PAYEVNTEMP117Repeat => PAYEVNTEMP117Repeat.PAYEVNTEMP117.GetValueOrDefault() > 0)) == true));
             if (assertion)
@@ -1639,9 +1598,8 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:Identifiers/tns:TaxFileNumberId",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000176" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP13", Value = report.PAYEVNTEMP13 });
+                { Name = "PAYEVNTEMP13", Value = GetValueOrEmpty(report.PAYEVNTEMP13) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNTEMP62", Value = "PAYEVNTEMP62" });
@@ -1650,79 +1608,79 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                 { Name = "PAYEVNTEMP87", Value = "PAYEVNTEMP87" });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP111", Value = report.PAYEVNTEMP111.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP111", Value = GetValueOrEmpty(report.PAYEVNTEMP111) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP57", Value = report.PAYEVNTEMP57.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP57", Value = GetValueOrEmpty(report.PAYEVNTEMP57) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP115", Value = report.PAYEVNTEMP115.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP115", Value = GetValueOrEmpty(report.PAYEVNTEMP115) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP52", Value = report.PAYEVNTEMP52.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP52", Value = GetValueOrEmpty(report.PAYEVNTEMP52) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP54", Value = report.PAYEVNTEMP54.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP54", Value = GetValueOrEmpty(report.PAYEVNTEMP54) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP55", Value = report.PAYEVNTEMP55.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP55", Value = GetValueOrEmpty(report.PAYEVNTEMP55) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP56", Value = report.PAYEVNTEMP56.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP56", Value = GetValueOrEmpty(report.PAYEVNTEMP56) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP125", Value = report.PAYEVNTEMP125.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP125", Value = GetValueOrEmpty(report.PAYEVNTEMP125) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP126", Value = report.PAYEVNTEMP126.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP126", Value = GetValueOrEmpty(report.PAYEVNTEMP126) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP122", Value = report.PAYEVNTEMP122.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP122", Value = GetValueOrEmpty(report.PAYEVNTEMP122) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP116", Value = report.PAYEVNTEMP116.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP116", Value = GetValueOrEmpty(report.PAYEVNTEMP116) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP120", Value = report.PAYEVNTEMP120.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP120", Value = GetValueOrEmpty(report.PAYEVNTEMP120) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP132", Value = report.PAYEVNTEMP132.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP132", Value = GetValueOrEmpty(report.PAYEVNTEMP132) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP113", Value = report.PAYEVNTEMP113.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP113", Value = GetValueOrEmpty(report.PAYEVNTEMP113) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP200", Value = report.PAYEVNTEMP200.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP200", Value = GetValueOrEmpty(report.PAYEVNTEMP200) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP201", Value = report.PAYEVNTEMP201.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP201", Value = GetValueOrEmpty(report.PAYEVNTEMP201) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP47", Value = report.PAYEVNTEMP47.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP47", Value = GetValueOrEmpty(report.PAYEVNTEMP47) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP60", Value = report.PAYEVNTEMP60.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP60", Value = GetValueOrEmpty(report.PAYEVNTEMP60) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP130", Value = report.PAYEVNTEMP130.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP130", Value = GetValueOrEmpty(report.PAYEVNTEMP130) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP49", Value = report.PAYEVNTEMP49.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP49", Value = GetValueOrEmpty(report.PAYEVNTEMP49) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP48", Value = report.PAYEVNTEMP48.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP48", Value = GetValueOrEmpty(report.PAYEVNTEMP48) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP114", Value = report.PAYEVNTEMP114.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP114", Value = GetValueOrEmpty(report.PAYEVNTEMP114) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP237", Value = report.PAYEVNTEMP237.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP237", Value = GetValueOrEmpty(report.PAYEVNTEMP237) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP112", Value = report.PAYEVNTEMP112.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP112", Value = GetValueOrEmpty(report.PAYEVNTEMP112) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP119", Value = report.PAYEVNTEMP119.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP119", Value = GetValueOrEmpty(report.PAYEVNTEMP119) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
                 { Name = "PAYEVNTEMP50", Value = "PAYEVNTEMP50" });
@@ -1750,9 +1708,9 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
     
             Data Elements:
     
-            PAYEVNTEMP:^PAYEVNTEMP84 = emsup.02.08:SuperannuationContribution.EmployerContributionsSuperannuationGuarantee.Amount
+            ^PAYEVNTEMP84 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:SuperannuationContribution:SuperannuationContribution.EmployerContributionsSuperannuationGuarantee.Amount
     
-            PAYEVNTEMP:^PAYEVNTEMP61 = lrla.02.20:Remuneration.OrdinaryTimeEarnings.Amount
+            ^PAYEVNTEMP61 = PAYEVNTEMP:Payee:RemunerationIncomeTaxPayAsYouGoWithholding:SuperannuationContribution:Remuneration.OrdinaryTimeEarnings.Amount
             */
             assertion = (report.PAYEVNTEMP84 == null && report.PAYEVNTEMP61 == null);
             if (assertion)
@@ -1765,16 +1723,160 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
                     Location = "/tns:PAYEVNTEMP/tns:Payee/tns:RemunerationIncomeTaxPayAsYouGoWithholding/tns:SuperannuationContribution/tns:EmployerContributionsSuperannuationGuaranteeA",
                     Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000182" } },
                 };
-                
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP84", Value = report.PAYEVNTEMP84.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP84", Value = GetValueOrEmpty(report.PAYEVNTEMP84) });
 
                 processMessage.Parameters.Add(new ProcessMessageParameter
-                { Name = "PAYEVNTEMP61", Value = report.PAYEVNTEMP61.GetValueOrDefault().ToString() });
+                { Name = "PAYEVNTEMP61", Value = GetValueOrEmpty(report.PAYEVNTEMP61) });
 
                 response.Add(processMessage);
             }
             #endregion // VR.ATO.PAYEVNTEMP.000182
+
+            #region VR.ATO.PAYEVNTEMP.000183
+
+            /*  VR.ATO.PAYEVNTEMP.000183
+            When Payee Day of Birth, Payee Month of Birth and Payee Year of Birth are supplied, it must be a valid date.
+    
+            Legacy Rule Format:
+            (^PAYEVNTEMP205 <> NULL AND ^PAYEVNTEMP203 <> NULL AND ^PAYEVNTEMP204 <> NULL AND (IsDate(ConvertToDate(^PAYEVNTEMP205, ^PAYEVNTEMP203, ^PAYEVNTEMP204)) = 'FALSE' ))
+
+            Technical Business Rule Format:
+            (^PAYEVNTEMP205 <> NULL AND ^PAYEVNTEMP203 <> NULL AND ^PAYEVNTEMP204 <> NULL AND (IsDate(ConvertToDate(^PAYEVNTEMP205, ^PAYEVNTEMP203, ^PAYEVNTEMP204)) = 'FALSE' ))
+    
+            Data Elements:
+    
+            ^PAYEVNTEMP205 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.DayofMonth
+    
+            ^PAYEVNTEMP203 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.Month
+    
+            ^PAYEVNTEMP204 = PAYEVNTEMP:Payee:PersonDemographicDetails:PersonDemographicDetails.Birth.Year
+            */
+            assertion = (report.PAYEVNTEMP205 != null && report.PAYEVNTEMP203 != null && report.PAYEVNTEMP204 != null && IsDate(ConvertToDate(report.PAYEVNTEMP205.GetValueOrDefault(), report.PAYEVNTEMP203.GetValueOrDefault(), report.PAYEVNTEMP204.GetValueOrDefault())) == false);
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.PAYEVNTEMP.000169",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Date of birth is invalid",
+                    Location = "/tns:PAYEVNTEMP/tns:Payee/tns:PersonDemographicDetails/tns:BirthDm",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000183" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP205", Value = GetValueOrEmpty(report.PAYEVNTEMP205) });
+
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP203", Value = GetValueOrEmpty(report.PAYEVNTEMP203) });
+
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP204", Value = GetValueOrEmpty(report.PAYEVNTEMP204) });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNTEMP.000183
+
+            #region VR.ATO.PAYEVNTEMP.000184
+
+            /*  VR.ATO.PAYEVNTEMP.000184
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * - = _ ' . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNTEMP21 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNTEMP21, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNTEMP21 <> BLANK) AND (NotCharacterInSet(^PAYEVNTEMP21, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNTEMP21 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Line1.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNTEMP21) != true && !(IsMatch(report.PAYEVNTEMP21, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500026",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Address Line 1 contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:Line1T",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000184" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP21", Value = report.PAYEVNTEMP21 });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNTEMP.000184
+
+            #region VR.ATO.PAYEVNTEMP.000185
+
+            /*  VR.ATO.PAYEVNTEMP.000185
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * - = _ ' . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNTEMP22 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNTEMP22, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNTEMP22 <> BLANK) AND (NotCharacterInSet(^PAYEVNTEMP22, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNTEMP22 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.Line2.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNTEMP22) != true && !(IsMatch(report.PAYEVNTEMP22, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500027",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Address Line 2 contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:Line2T",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000185" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP22", Value = GetValueOrEmpty(report.PAYEVNTEMP22) });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNTEMP.000185
+
+            #region VR.ATO.PAYEVNTEMP.000186
+
+            /*  VR.ATO.PAYEVNTEMP.000186
+            A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * - = _ ' . ? / or a space character
+    
+            Legacy Rule Format:
+            ((^PAYEVNTEMP23 <> NULLORBLANK) AND (NotCharacterInSet(^PAYEVNTEMP23, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+
+            Technical Business Rule Format:
+            ((^PAYEVNTEMP23 <> BLANK) AND (NotCharacterInSet(^PAYEVNTEMP23, '"a-z","A-Z","0-9","!","@","$","%","&","*","(",")","-","=","[","]",";",":","'",""",",",".","?","/"," "')))
+    
+            Data Elements:
+    
+            ^PAYEVNTEMP23 = PAYEVNTEMP:Payee:AddressDetails:AddressDetails.LocalityName.Text
+            */
+            assertion = (string.IsNullOrWhiteSpace(report.PAYEVNTEMP23) != true && !(IsMatch(report.PAYEVNTEMP23, @"^[a-zA-Z0-9!@\$%&\*\(\)\-=\[\];:'"",\.\?/ ]*$", RegexOptions.IgnoreCase)));
+            if (assertion)
+            {
+                processMessage = new ProcessMessageDocument()
+                {
+                    Code = "CMN.ATO.GEN.500028",
+                    Severity = ProcessMessageSeverity.Error,
+                    Description = @"Suburb/Town/City contains invalid text",
+                    LongDescription = @"A text character must be one of the following: A to Z a to z 0 to 9 ! @ $ % & * ( ) - = [ ] ; : ' "" , . ? / or a space character",
+                    Location = "/tns:PAYEVNTEMP/tns:Payee/tns:AddressDetails/tns:LocalityNameT",
+                    Parameters = new ProcessMessageParameters() { new ProcessMessageParameter() { Name = "RuleIdentifier", Value = "VR.ATO.PAYEVNTEMP.000186" } },
+                };
+                processMessage.Parameters.Add(new ProcessMessageParameter
+                { Name = "PAYEVNTEMP23", Value = report.PAYEVNTEMP23 });
+
+                response.Add(processMessage);
+            }
+            #endregion // VR.ATO.PAYEVNTEMP.000186
 
             foreach (ProcessMessageDocument currentProcessMessage in response)
             {
@@ -1807,7 +1909,6 @@ namespace Ato.EN.IntegrationServices.CodeGenerationPAYEVNTEMP
 
             return response;
         }
-
-
+        
     }
 }

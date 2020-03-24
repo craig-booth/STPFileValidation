@@ -57,7 +57,7 @@
                         <Image Style="{StaticResource ErrorSeverityStyle}" Width="30" Margin="10" VerticalAlignment="Top"/>
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="{Binding ErrorCode}" FontWeight="Bold" />
-                            <TextBlock >In Document <TextBlock Text="{Binding DocumentId}" /> : <TextBlock Text="{Binding Location}" /></TextBlock>
+                            <TextBlock Text="{Binding ErrorLocation}"/>
                             <TextBlock Text="{Binding Description}" />
                             <TextBlock Text="{Binding LongDescription}" />
                         </StackPanel>
